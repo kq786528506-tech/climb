@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#20365b"><title>向上吧！建筑师 · CLIMB</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#20365b;touch-action:none;overscroll-behavior:none;font-family:system-ui,sans-serif}body{display:flex;align-items:center;justify-content:center}#frame{position:relative;width:min(100vw,56.25dvh);height:min(100dvh,177.7778vw);overflow:hidden;background:#50c9f0}canvas{display:block;width:100%;height:100%;touch-action:none;outline:none}#loading{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;color:#fff6db;background:#20365b;gap:18px;text-align:center;padding:25px}h1{font-size:30px;margin:0}small{opacity:.7}progress{width:75%;height:12px;accent-color:#ffd94a}#error{color:#ffad87;white-space:pre-wrap}#rotate{display:none;position:fixed;bottom:5px;color:#fff6db88;font-size:12px;pointer-events:none}@media(orientation:landscape){#rotate{display:block}}
+</style></head>
+<body><div id="frame"><canvas id="unity-canvas" tabindex="0"></canvas><div id="loading"><small>SKYLINE WORKS</small><h1>向上吧！建筑师</h1><span>戴好安全帽，准备出发</span><progress id="bar" value="0" max="1"></progress><small id="progress">正在准备塔楼…</small><div id="error"></div></div></div><div id="rotate">竖屏体验更好</div>
+<script>
+const canvas=document.getElementById('unity-canvas'),frame=document.getElementById('frame');
+let instance;window.climbTouchStats={taps:0,left:0,right:0};
+canvas.addEventListener('contextmenu',e=>e.preventDefault());
+canvas.addEventListener('touchstart',e=>{
+ e.preventDefault();if(!instance||e.touches.length!==1)return;
+ const b=canvas.getBoundingClientRect(),p=e.touches[0],x=(p.clientX-b.left)/b.width*540,y=(p.clientY-b.top)/b.height*960;
+ // IMGUI receives ordinary touch for menus and footer. The bridge is limited to the play area.
+ if(y>145&&y<835){instance.SendMessage('Climb Game','BrowserTap',x.toFixed(2)+','+y.toFixed(2));window.climbTouchStats.taps++;window.climbTouchStats[x<270?'left':'right']++;}
+},{passive:false});
+// Do not cancel menu touch events: Unity's UI needs them for start/pause/retry buttons.
+canvas.addEventListener('touchmove',e=>e.preventDefault(),{passive:false});
+document.addEventListener('gesturestart',e=>e.preventDefault(),{passive:false});
+const url='Build', script=document.createElement('script');script.src=url+'/WebGL.loader.js';
+script.onload=()=>createUnityInstance(canvas,{dataUrl:url+'/WebGL.data.unityweb',frameworkUrl:url+'/WebGL.framework.js.unityweb',codeUrl:url+'/WebGL.wasm.unityweb',streamingAssetsUrl:'StreamingAssets',companyName:'MiniGame Studio',productName:'Climb',productVersion:'1.0',devicePixelRatio:Math.min(window.devicePixelRatio||1,2)},p=>{document.getElementById('bar').value=p;document.getElementById('progress').textContent='正在搭建塔楼 '+Math.round(p*100)+'%';}).then(i=>{instance=i;window.climbInstance=i;document.getElementById('loading').style.display='none';canvas.focus();}).catch(e=>document.getElementById('error').textContent='加载失败，请刷新重试。\n'+e);
+script.onerror=()=>document.getElementById('error').textContent='游戏资源加载失败，请刷新。';document.body.appendChild(script);
+</script></body></html>
